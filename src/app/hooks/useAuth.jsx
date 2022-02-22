@@ -36,6 +36,7 @@ const AuthProvider = ({ children }) => {
                     returnSecureToken: true
                 }
             );
+            console.log(data);
             setTokens(data);
             await getUserData();
         } catch (error) {
@@ -97,6 +98,7 @@ const AuthProvider = ({ children }) => {
             }
         }
     }
+
     async function createUser(data) {
         try {
             const { content } = await userService.create(data);
@@ -106,6 +108,63 @@ const AuthProvider = ({ children }) => {
             errorCatcher(error);
         }
     }
+
+    console.log(currentUser);
+
+    async function updateProfile({
+        email,
+        profession,
+        qualities,
+        name,
+        sex,
+        ...rest
+    }) {
+        const idToken = localStorageService.getAccessToken();
+        try {
+            const { data } = await httpAuth.post(`accounts:update`, {
+                idToken,
+                email,
+                profession,
+                qualities,
+                name,
+                sex,
+                returnSecureToken: true
+            });
+
+            console.log(data);
+            if (data.idToken.length > 0) {
+                setTokens(data);
+            }
+            await updateUser({
+                _id: data.localId,
+                email,
+                profession,
+                qualities,
+                name,
+                sex,
+                rate: currentUser.rate,
+                completedMeetings: currentUser.completedMeetings,
+                image: currentUser.image,
+                ...rest
+            });
+        } catch (error) {
+            errorCatcher(error);
+            const { code, message } = error.response.data.error;
+            console.log(code, message);
+        }
+    }
+
+    async function updateUser(data) {
+        console.log(data);
+        try {
+            const { content } = await userService.update(data);
+            console.log(content);
+            setUser(content);
+        } catch (error) {
+            errorCatcher(error);
+        }
+    }
+
     function errorCatcher(error) {
         const { message } = error.response.data;
         setError(message);
@@ -134,7 +193,9 @@ const AuthProvider = ({ children }) => {
         }
     }, [error]);
     return (
-        <AuthContext.Provider value={{ signUp, logIn, currentUser, logOut }}>
+        <AuthContext.Provider
+            value={{ signUp, updateProfile, logIn, currentUser, logOut }}
+        >
             {!isLoading ? children : "Loading..."}
         </AuthContext.Provider>
     );

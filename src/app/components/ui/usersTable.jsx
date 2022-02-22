@@ -6,6 +6,7 @@ import Qualities from "./qualities";
 import Table from "../common/table";
 import { Link } from "react-router-dom";
 import Profession from "./profession";
+import { useAuth } from "../../hooks/useAuth";
 
 const UserTable = ({
     users,
@@ -14,6 +15,10 @@ const UserTable = ({
     onToggleBookMark,
     ...rest
 }) => {
+    const { currentUser } = useAuth();
+    console.log(currentUser.qualities);
+    console.log(users);
+
     const columns = {
         name: {
             path: "name",
